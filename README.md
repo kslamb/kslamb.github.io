@@ -1,4 +1,1 @@
-kslamb.github.io
-================
-
-Karen's Github Page
+kslamb's github pages
