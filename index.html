@@ -34,29 +34,24 @@
 <body>
 <button disabled=true class="back-button">Back</button>
 <button onclick="loadTactics()" class="next-button">Next</button>
-<h1>MITRE ATT&CK: Tactics & Techniques</h1>
+<h1>MITRE ATT&CK: Describing Cyber Attacks</h1>
 <p>
     The MITRE ATT&CK framework (https://attack.mitre.org/) is a standard way of describing cyber attacks. Cyber attacks
-    commonly proceed in stages, which are presented to the left starting with "Initial Access" all the way through to
-    "Impact". Each of these is referred to as a <b>tactic</b>.Tactics are high-level, describing the primary phases of
-    a cyber attack. Within each tactic there are many <b>techniques</b> which describe more specific behaviours
+    commonly proceed in stages, which are presented to the left starting with <b>Initial Access</b> all the way through to
+    <b>Impact</b>. Each of these is referred to as a <b>tactic</b>, a high-level behavioral pattern observed in cyber attacks.
+    Within each tactic there are many <b>techniques</b> which describe more specific behaviours. Hover over the tactics
+    for a more detailed description of each stage.
 </p>
-
-
 </body>
-
-
+<div id="tacticsViz"></div>
 <script>
-
-    var page = 0;
-
     var color = d3.scaleOrdinal().domain(tactics.map(d => d.stage)).range(d3.schemeCategory20);
 
     var margin = {top: 20, right: 20, bottom: 70, left: 180},
         width = 1000 - margin.left - margin.right,
         height = 800 - margin.top - margin.bottom;
 
-    var svg = d3.select("body").append("svg")
+    var svg = d3.select("#tacticsViz").append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
@@ -91,7 +86,7 @@
             d3.selectAll(".tacticDescription").remove();
         })
         .transition().duration(500).delay(function (d, i) {return 200 * i;})
-            .attr("width", 0.05 * width);
+            .attr("width", y.bandwidth());
 
     svg.append("g").selectAll("tacticLabel")
         .data(tactics)
@@ -116,60 +111,96 @@
             .attr("disabled", null)
             .attr("onClick", "document.location='index.html'");
 
-        d3.csv("tactics-ordered.csv", function (error, data) {
+        d3.json("usages.json", function (error, data) {
             d3.select("p")
-                .text("This bar chart shows how frequently each tactic is used by various Cyber threat actors. Each " +
-                    "tactic encompasses many, specific techniques. For an example, the \"Initial Access\" tactic " +
-                    "includes the techniques \"Spearphishing Link\" and \"Spearphishing Attachment\".");
+                .text("This bar chart shows how frequently each tactic is used by various groups conducting cyber " +
+                    "attacks and the software that enable them. Each tactic encompasses many, specific techniques. " +
+                    "For an example, the \"Initial Access\" tactic includes the techniques \"Spearphishing Link\" " +
+                    "and \"Spearphishing Attachment\". The horizontal axis plots how many times a particular tactic "+
+                    "was used by a unique cyber threat group or tool."
+                );
 
             var x = d3.scaleLinear().domain([0, d3.max(data, function (d) {
-                return +d.value;
+                return +d.count;
             })]).range([0, width]);
 
             svg.selectAll("bar")
                 .data(data)
                 .enter().append("rect")
-                .style("fill", function(d) {return color(d.tactic);})
+                .style("fill", function(d) {return color(d.name);})
                 .attr("x", 0 )
-                .attr("width", 0.05 * width)
-                .attr("y", function(d) { return y(d.tactic); })
+                .attr("width", y.bandwidth())
+                .attr("y", function(d) { return y(d.name); })
                 .attr("height",  y.bandwidth())
                 .on("mouseover", function(d) {
                     svg.append("g")
                         .append("text")
                         .attr("class", "tacticCount")
-                        .attr("x", x(d.value))
-                        .attr("y", y(d.tactic) + y.bandwidth() / 2 )
+                        .attr("x", x(d.count))
+                        .attr("y", y(d.name) + y.bandwidth() / 2 )
                         .style("font", "16px sans-serif")
                         .style("text-anchor", "end")
                         .attr("dx", "-1em")
                         .attr("dy", ".3em")
-                        .text(d.value)
+                        .text(d.count)
                         .attr("fill", "white");
                 })
                 .on("mouseout", function() {
                     svg.selectAll(".tacticCount").remove()
                 })
-                .transition().duration(1000).delay(function (d, i) {return 300 * i;})
-                .attr("width", function (d) { return x(d.value); } );
+                .transition().duration(1000)
+                .attr("width", function (d) { return x(d.count); } );
 
             svg.append("g")
                 .attr("transform",
                     "translate(" + 0 + "," + height + ")")
-                .call(d3.axisBottom(x).tickValues([0, 100, 200, 300, 400, 500]));
+                .call(d3.axisBottom(x));
 
-            // svg.append("g")
-            //     .append("text")
-            //     .attr("x", x(data[3].value) + 20)
-            //     .attr("y", y(data[3].tactic) + 20)
-            //     .style("font", "16px sans-serif")
-            //     .text("Why is this one so big?");
+            var firstAnnotation = d3.select("#tacticsViz")
+                .append("div")
+                .style("opacity", 0)
+                .style("position", "absolute")
+                .attr("class", "annotation")
+                .style("background-color", "white")
+                .style("border", "solid")
+                .style("padding", "10px")
+
+            firstAnnotation
+                .html("Some of the earlier stage tactics like<br/>" +
+                    "Execution, Privilege Escalation, and<br/>" +
+                    "Defense Evasion have higher usage by<br/>" +
+                    "attackers and tools.<br/>"
+                )
+                .style("left", width + "px")
+                .style("top", "200px")
+                .style("font", "16px sans-serif")
+                .transition(300).delay(1000)
+                .style("opacity", 1);
+
+            var secondAnnotation = d3.select("#tacticsViz")
+                .append("div")
+                .style("opacity", 0)
+                .style("position", "absolute")
+                .attr("class", "annotation")
+                .style("background-color", "white")
+                .style("border", "solid")
+                .style("padding", "10px")
+
+            secondAnnotation
+                .html("On the other hand, the later<br/>" +
+                    "stage tactics like Exfiltration and<br/>" +
+                    "Impact are observed less frequently.<br/>" +
+                    "This is partly due to the fact that these<br/>" +
+                    "later stages are more difficult to<br/>" +
+                    "observe."
+                )
+                .style("left", width + "px")
+                .style("top", (height - 80) + "px")
+                .style("font", "16px sans-serif")
+                .transition(300).delay(3000)
+                .style("opacity", 1);
 
         });
-    };
-
-    var sceneThree = function() {
-        console.log("sceneThree!!!");
     };
 
 </script>
