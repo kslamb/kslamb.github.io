@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="./tactics.js"></script>
+  <style>
+    body {
+      font: 12px sans-serif;
+    }
+
+    p {
+      font: 16px sans-serif;
+      line-height: 1.5;
+      margin-left: 40px;
+      margin-right: 40px;
+      margin-top: 20px;
+    }
+
+    .axis {
+      font: 10px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+    circle {
+      fill-opacity: 0.5;
+      stroke: rgb(50, 50, 50);
+      stroke-width: 1px;
+    }
+
+  </style>
+</head>
+<body>
+<button onclick="document.location='index.html'">Back</button>
+<button onclick="document.location='mitigations.html'">Next</button>
+<h1>Techniques: How are they used?</h1>
+<p>As discussed, each high-level tactic used in cyber attacks can be further broken down into smaller, more specific
+techniques. In fact, each of these techniques can have even more specific sub-techniques. This visualization shows all
+  the techniques and sub-techniques in a hierarchical structure, where each top-level circle represents a tactic. The
+relative size of each circle represents how frequently it is used by various groups and tools.</p>
+
+</body>
+<div id="groupsViz"></div>
+<script>
+
+  var margin = {top: 20, right: 20, bottom: 70, left: 180},
+          width = 1000 - margin.left - margin.right,
+          height = 800 - margin.top - margin.bottom;
+
+  var zoom = d3.zoom()
+          .scaleExtent([1/4, 9])
+          .on('zoom', function () {
+            d3.select('g').attr('transform', d3.event.transform)
+          });
+
+
+  var svg = d3.select("#groupsViz").append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+          .call(zoom)
+          .append("g");
+          // .attr("transform",
+          //         "translate(" + margin.left + "," + margin.top + ")");
+
+  // var transform = d3.zoomIdentity.translate(margin.left, margin.top);
+  // svg.call(zoom.transform, transform);
+
+  var tooltip = d3.select("#groupsViz")
+      .append("div")
+      // .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+      .style("opacity", 0)
+      .style("position", "absolute")
+      .style("background-color", "white")
+      .attr("class", "tooltip")
+      .style("border", "solid")
+      .style("padding", "10px")
+
+  d3.json("usages.json", function (error, data) {
+
+    var color = d3.scaleOrdinal().domain(tactics.map(d => d.stage)).range(d3.schemeCategory20);
+    var diameter = height;
+
+    var pack = d3.pack()
+        .size([diameter, diameter])
+        .padding(2);
+
+    var root = {
+      "name": "attack",
+      "children": data
+    }
+
+    root = d3.hierarchy(root)
+      .sum(function(d) { return d.count; })
+      .sort(function (a, b) { return b.count - a.count; });
+
+
+    var nodes = pack(root).descendants().slice(1);
+
+    var node = svg.selectAll(".node")
+            .data(nodes)
+            .enter().append("g")
+            .attr("class", function(d) { return d.children ? "node" : "leaf node"; })
+            .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+    var circle = node.append("circle")
+        .attr("r", 0)
+        .attr("class", function(d) {
+          var normal_name = d.data.name.replaceAll(/[&\/\\#,+()$~%.'":*?<>{} ]/g,'_');
+          return "circle" + normal_name;
+        })
+        .style("fill", function(d) {
+          if (d.depth === 1) {
+            return color(d.data.name);
+          }
+          if (d.depth === 2) {
+            return color(d.parent.data.name);
+          }
+          if (d.depth === 3) {
+            return color(d.parent.parent.data.name);
+          }
+        })
+        .on("mouseover", function(d) {
+          var normal_name = d.data.name.replaceAll(/[&\/\\#,+()$~%.'":*?<>{} ]/g,'_');
+
+          var name = d.data.name;
+          // Prettify the name for the top-level tactics
+          if (d.depth === 1) {
+            name = d.data.name.replaceAll("-", " ").toUpperCase();
+          }
+
+          if (d.data.name !== "Hijack Execution Flow") {
+            d3.selectAll(".circle" + normal_name)
+                    .style("stroke-width", "2px");
+          }
+
+
+          tooltip
+              .html("<b>" + name + "</b><br/>" + "used " + d.data.count + " times.")
+              .style("left", (d3.event.clientX + 20) + "px")
+              .style("top", (d3.event.clientY - 20) + "px")
+              .style("opacity", 1);
+        })
+        .on("mouseout", function(d) {
+          var normal_name = d.data.name.replaceAll(/[&\/\\#,+()$~%.'":*?<>{} ]/g,'_');
+
+          if (d.data.name !== "Hijack Execution Flow") {
+            d3.selectAll(".circle" + normal_name)
+                    .style("stroke-width", "1px");
+          }
+
+          tooltip.style("opacity", 0);
+
+        })
+        .transition().duration(1000).delay(function(d) { return 500 * d.depth; })
+        .attr("r", function(d) { return d.r; });
+
+    d3.selectAll(".circleHijack_Execution_Flow")
+            .transition(300).delay(3000)
+            .style("stroke", "white")
+            .style("stroke-width", "4px");
+
+    var annotation = d3.select("#groupsViz")
+            .append("div")
+            .style("opacity", 0)
+            .style("position", "absolute")
+            .attr("class", "annotation")
+            .style("background-color", "white")
+            .style("border", "solid")
+            .style("padding", "10px")
+
+    annotation
+            .html("Intuitively, the tactics with the most<br/>" +
+                    "embedded techniques have the highest<br/>" +
+                    "usage. Additionally, some techniques<br/>" +
+                    "belong to multiple tactics.<br/>" +
+                    "<br/>" +
+                    "For example, the technique highlighted<br/>" +
+                    "in white (\"Hijack Execution Flow\") falls<br/>" +
+                    "under three different tactics:<br/>" +
+                    "<b>Privilege Escalation</b>, <b>Persistence</b>,<br/>" +
+                    "and <b>Defense Evasion</b>.<br/>" +
+                    "<br/>" +
+                    "The <b>Defense Evasion</b> tactic clearly has<br/>" +
+                    "the highest usage. This is largely due to the<br/>" +
+                    "fact that many techniques used in cyber<br/>" +
+                    "attacks are designed to be evasive. As a<br/>" +
+                    "result, many techniques described in<br/>" +
+                    "the ATT&CK framework fall under the<br/>" +
+                    "Defense Evasion tactic in addition to others."
+            )
+            .style("left", (width - 50) + "px")
+            .style("top", "200px")
+            .style("font", "16px sans-serif")
+            .transition(300).delay(3000)
+            .style("opacity", 1);
+
+  });
+
+</script>
+</html>

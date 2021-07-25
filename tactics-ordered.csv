@@ -1,0 +1,13 @@
+﻿tactic,value
+initial-access,212
+execution,391
+persistence,272
+privilege-escalation,257
+defense-evasion,529
+credential-access,180
+discovery,345
+lateral-movement,88
+collection,185
+command-and-control,254
+exfiltration,41
+impact,29

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="./tactics.js"></script>
+  <style>
+    body {
+      font: 12px sans-serif;
+    }
+
+    p {
+      font: 16px sans-serif;
+      line-height: 1.5;
+      margin-left: 40px;
+      margin-right: 40px;
+      margin-top: 20px;
+    }
+
+    .axis {
+      font: 10px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+    circle {
+      fill-opacity: 0.5;
+      /*stroke: rgb(50, 50, 50);*/
+      /*stroke-width: 1px;*/
+    }
+
+    .zoom {
+      cursor: move;
+      fill: none;
+      pointer-events: all;
+    }
+
+  </style>
+</head>
+<button onclick="document.location='usages.html'">Back</button>
+<button disabled="true">Next</button>
+<body>
+<h1>Techniques Used and Mitigated</h1>
+<p>In addition to detailing the tactics and techniques leveraged in cyber attacks, the MITRE ATT&CK framework also
+describes defensive mitigations against these. Ideally, the most used techniques would have the most defensive
+  mitigations, providing more protective capabilities.</p>
+
+</body>
+<div id="mitigationsViz"></div>
+<script>
+  var margin = {top: 20, right: 20, bottom: 70, left: 180},
+          width = 1000 - margin.left - margin.right,
+          height = 800 - margin.top - margin.bottom;
+
+  d3.json("mitigations.json", function (error, data) {
+
+    var zoom = d3.zoom()
+            .scaleExtent([1, 5])
+            .on("zoom", zoomFunction);
+
+    var svg = d3.select("#mitigationsViz").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .style("background-color", "white")
+            .call(zoom)
+            .append("g")
+            .attr("transform",
+                    "translate(" + margin.left + "," + margin.top + ")");
+
+    var tooltip = d3.select("#mitigationsViz")
+            .append("div")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+            .style("opacity", 0)
+            .style("position", "absolute")
+            .attr("class", "tooltip")
+            .style("background-color", "white")
+            .style("border", "solid")
+            .style("padding", "10px")
+
+    // mitigations (y) vs. usage (x)
+    var color = d3.scaleOrdinal().domain(tactics.map(d => d.stage)).range(d3.schemeCategory20);
+
+    var x = d3.scaleLinear().domain([0, d3.max(data, function (d) {
+      return +d.usage_count;
+    })]).range([0, width]);
+
+    var y = d3.scaleLinear().domain([0, d3.max(data, function (d) {
+      return +d.mitigations_count;
+    })]).range([height, 0]);
+
+    var xAxis = d3.axisBottom(x);
+    var yAxis = d3.axisLeft(y);
+
+    var circles = svg.selectAll("circle")
+            .data(data)
+            .enter().append("circle")
+            .style("fill", function(d) {return color(d.tactic);})
+            .attr("cx", function(d) { return x(d.usage_count); } )
+            .attr("cy", function(d) { return y(d.mitigations_count); })
+            .attr("r", 4)
+            .on("mouseover", function(d) {
+              var tactic_name = d.tactic.replaceAll("-", " ").toUpperCase();
+              tooltip
+                      .html("<b>Tactic:</b> " + tactic_name + "<br/><b>Technique:</b> " + d.name + "<br/>" + d.usage_count + " usages, " + d.mitigations_count + " mitigations")
+                      .style("left", (d3.event.clientX + 20) + "px")
+                      .style("top", (d3.event.clientY - 20) + "px")
+                      .style("opacity", 1);
+            })
+            .on("mouseout", function() {
+              tooltip.style("opacity", 0);
+            });
+
+    var gX = svg.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+    var gY = svg.append("g")
+            .attr("class", "axis axis--y")
+            .call(yAxis);
+
+    function zoomFunction() {
+      var e = d3.event;
+      d3.select('svg g').attr('transform', e.transform);
+    }
+  });
+</script>
