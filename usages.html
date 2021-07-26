@@ -38,9 +38,9 @@
 <body>
 <button onclick="document.location='index.html'" class="back-button">Back</button>
 <button onclick="firstAnnotation()" class="next-button">Next</button>
-<h1>Techniques: How are they used?</h1>
-<p>As discussed, each high-level tactic used in cyber attacks can be further broken down into smaller, more specific
-techniques. In fact, each of these techniques can have even more specific sub-techniques. This visualization shows all
+<h1>Tactics, Techniques, and Sub-techniques</h1>
+<p>Each high-level <b>tactic</b> used in cyber attacks can be further broken down into smaller, more specific
+  <b>techniques</b>. In fact, each of these techniques can have even more specific <b>sub-techniques</b>. This visualization shows all
   the techniques and sub-techniques in a hierarchical structure, where each top-level circle represents a tactic. The
 relative size of each circle represents how frequently it is used by various groups and tools.</p>
 
@@ -80,7 +80,9 @@ relative size of each circle represents how frequently it is used by various gro
       .style("background-color", "white")
       .attr("class", "tooltip")
       .style("border", "solid")
-      .style("padding", "10px")
+      .style("padding", "10px");
+
+  var scene = 0;
 
   d3.json("usages.json", function (error, data) {
 
@@ -135,11 +137,13 @@ relative size of each circle represents how frequently it is used by various gro
             name = d.data.name.replaceAll("-", " ").toUpperCase();
           }
 
-          if (d.data.name !== "Hijack Execution Flow") {
+          if ( (scene === 1 && d.data.name === "Hijack Execution Flow")
+                  || (scene === 2 && d.data.name === "defense-evasion")
+          ) { }
+          else {
             d3.selectAll(".circle" + normal_name)
                     .style("stroke-width", "2px");
           }
-
 
           tooltip
               .html("<b>" + name + "</b><br/>" + "used " + d.data.count + " times.")
@@ -150,7 +154,10 @@ relative size of each circle represents how frequently it is used by various gro
         .on("mouseout", function(d) {
           var normal_name = d.data.name.replaceAll(/[&\/\\#,+()$~%.'":*?<>{} ]/g,'_');
 
-          if (d.data.name !== "Hijack Execution Flow") {
+          if ( (scene === 1 && d.data.name === "Hijack Execution Flow")
+                  || (scene === 2 && d.data.name === "defense-evasion")
+          ) { }
+          else {
             d3.selectAll(".circle" + normal_name)
                     .style("stroke-width", "1px");
           }
@@ -165,6 +172,8 @@ relative size of each circle represents how frequently it is used by various gro
   });
 
   var firstAnnotation = function() {
+
+    scene = 1;
 
     d3.select(".next-button")
             .attr("onClick", "secondAnnotation()");
@@ -202,6 +211,8 @@ relative size of each circle represents how frequently it is used by various gro
   }
 
   var secondAnnotation = function() {
+
+    scene = 2;
 
     d3.select(".next-button")
             .attr("onClick", "document.location='mitigations.html'");
