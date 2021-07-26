@@ -58,6 +58,15 @@
         .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")");
 
+    var annotation = d3.select("#tacticsViz")
+        .append("div")
+        .style("opacity", 0)
+        .style("position", "absolute")
+        .attr("class", "annotation")
+        .style("background-color", "white")
+        .style("border", "solid")
+        .style("padding", "10px")
+
     var y = d3.scaleBand().domain(tactics.map(d => d.stage)).range([0, height]).paddingInner(0.10);
 
     svg.selectAll("bar")
@@ -105,7 +114,7 @@
 
     var loadTactics = function() {
         d3.select(".next-button")
-            .attr("onClick", "secondAnnotation()");
+            .attr("onClick", "firstAnnotation()");
 
         d3.select(".back-button")
             .attr("disabled", null)
@@ -155,47 +164,36 @@
                 .attr("transform",
                     "translate(" + 0 + "," + height + ")")
                 .call(d3.axisBottom(x));
-
-            var firstAnnotation = d3.select("#tacticsViz")
-                .append("div")
-                .style("opacity", 0)
-                .style("position", "absolute")
-                .attr("class", "annotation")
-                .style("background-color", "white")
-                .style("border", "solid")
-                .style("padding", "10px")
-
-            firstAnnotation
-                .html("Some of the earlier stage tactics like<br/>" +
-                    "Execution, Privilege Escalation, and<br/>" +
-                    "Defense Evasion have higher usage by<br/>" +
-                    "attackers and tools.<br/>"
-                )
-                .style("left", width + "px")
-                .style("top", "200px")
-                .style("font", "16px sans-serif")
-                .transition(300).delay(1000)
-                .style("opacity", 1);
-
         });
     };
+
+    var firstAnnotation = function () {
+        d3.select(".next-button")
+            .attr("onClick", "secondAnnotation()");
+
+        d3.select(".back-button")
+            .attr("disabled", null)
+            .attr("onClick", "document.location='index.html'");
+
+        annotation
+            .html("Some of the earlier stage tactics like<br/>" +
+                "Execution, Privilege Escalation, and<br/>" +
+                "Defense Evasion have higher usage by<br/>" +
+                "attackers and tools.<br/>"
+            )
+            .style("left", width + "px")
+            .style("top", "200px")
+            .style("font", "16px sans-serif")
+            .transition(300)
+            .style("opacity", 1);
+    }
 
     var secondAnnotation = function () {
         d3.select(".next-button")
             .attr("onClick", "document.location='usages.html'");
 
         d3.select(".back-button")
-            .attr("disabled", null)
-            .attr("onClick", "document.location='index.html'");
-
-        var annotation = d3.select("#tacticsViz")
-            .append("div")
-            .style("opacity", 0)
-            .style("position", "absolute")
-            .attr("class", "annotation")
-            .style("background-color", "white")
-            .style("border", "solid")
-            .style("padding", "10px")
+            .attr("onClick", "firstAnnotation()");
 
         annotation
             .html("On the other hand, the later<br/>" +

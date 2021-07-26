@@ -50,6 +50,8 @@
 </body>
 <div id="mitigationsViz"></div>
 <script>
+  var complete = false;
+
   var margin = {top: 20, right: 20, bottom: 70, left: 180},
           width = 1000 - margin.left - margin.right,
           height = 800 - margin.top - margin.bottom;
@@ -193,8 +195,12 @@
       svg.select(".axis--x").transition(t).call(xAxis);
       svg.select(".axis--y").transition(t).call(yAxis);
       svg.selectAll("circle").transition(t)
-              .attr("cx", function(d) { return x(d.usage_count); })
-              .attr("cy", function(d) { return y(d.mitigations_count); });
+              .attr("cx", function (d) {
+                return x(d.usage_count);
+              })
+              .attr("cy", function (d) {
+                return y(d.mitigations_count);
+              });
     }
 
     // Make a color legend for tactics
@@ -297,6 +303,8 @@
             .attr("r", 5);
 
     annotation.style("opacity", 0);
+
+    complete = true;
 
   }
 </script>

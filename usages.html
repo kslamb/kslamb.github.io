@@ -36,8 +36,8 @@
   </style>
 </head>
 <body>
-<button onclick="document.location='index.html'">Back</button>
-<button onclick="document.location='mitigations.html'">Next</button>
+<button onclick="document.location='index.html'" class="back-button">Back</button>
+<button onclick="firstAnnotation()" class="next-button">Next</button>
 <h1>Techniques: How are they used?</h1>
 <p>As discussed, each high-level tactic used in cyber attacks can be further broken down into smaller, more specific
 techniques. In fact, each of these techniques can have even more specific sub-techniques. This visualization shows all
@@ -58,21 +58,23 @@ relative size of each circle represents how frequently it is used by various gro
             d3.select('g').attr('transform', d3.event.transform)
           });
 
+  var annotation = d3.select("#groupsViz")
+          .append("div")
+          .style("opacity", 0)
+          .style("position", "absolute")
+          .attr("class", "annotation")
+          .style("background-color", "white")
+          .style("border", "solid")
+          .style("padding", "10px")
 
   var svg = d3.select("#groupsViz").append("svg")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
           .call(zoom)
           .append("g");
-          // .attr("transform",
-          //         "translate(" + margin.left + "," + margin.top + ")");
-
-  // var transform = d3.zoomIdentity.translate(margin.left, margin.top);
-  // svg.call(zoom.transform, transform);
 
   var tooltip = d3.select("#groupsViz")
       .append("div")
-      // .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
       .style("opacity", 0)
       .style("position", "absolute")
       .style("background-color", "white")
@@ -159,19 +161,25 @@ relative size of each circle represents how frequently it is used by various gro
         .transition().duration(1000).delay(function(d) { return 500 * d.depth; })
         .attr("r", function(d) { return d.r; });
 
+
+  });
+
+  var firstAnnotation = function() {
+
+    d3.select(".next-button")
+            .attr("onClick", "secondAnnotation()");
+
+    d3.select(".back-button")
+            .attr("onClick", "document.location='usages.html'");
+
     d3.selectAll(".circleHijack_Execution_Flow")
-            .transition(300).delay(3000)
+            .transition(300)
             .style("stroke", "white")
             .style("stroke-width", "4px");
 
-    var annotation = d3.select("#groupsViz")
-            .append("div")
-            .style("opacity", 0)
-            .style("position", "absolute")
-            .attr("class", "annotation")
-            .style("background-color", "white")
-            .style("border", "solid")
-            .style("padding", "10px")
+    d3.selectAll(".circledefense-evasion")
+            .transition(300)
+            .style("stroke-width", "1px");
 
     annotation
             .html("Intuitively, the tactics with the most<br/>" +
@@ -183,9 +191,35 @@ relative size of each circle represents how frequently it is used by various gro
                     "in white (\"Hijack Execution Flow\") falls<br/>" +
                     "under three different tactics:<br/>" +
                     "<b>Privilege Escalation</b>, <b>Persistence</b>,<br/>" +
-                    "and <b>Defense Evasion</b>.<br/>" +
-                    "<br/>" +
-                    "The <b>Defense Evasion</b> tactic clearly has<br/>" +
+                    "and <b>Defense Evasion</b>."
+            )
+            .style("left", (width - 50) + "px")
+            .style("top", "200px")
+            .style("font", "16px sans-serif")
+            .transition(300)
+            .style("opacity", 1);
+
+  }
+
+  var secondAnnotation = function() {
+
+    d3.select(".next-button")
+            .attr("onClick", "document.location='mitigations.html'");
+
+    d3.select(".back-button")
+            .attr("onClick", "firstAnnotation()");
+
+    d3.selectAll(".circleHijack_Execution_Flow")
+            .transition(300)
+            .style("stroke", "black")
+            .style("stroke-width", "1px");
+
+    d3.selectAll(".circledefense-evasion")
+            .transition(300)
+            .style("stroke-width", "5px");
+
+    annotation
+            .html("The <b>Defense Evasion</b> tactic clearly has<br/>" +
                     "the highest usage. This is largely due to the<br/>" +
                     "fact that many techniques used in cyber<br/>" +
                     "attacks are designed to be evasive. As a<br/>" +
@@ -194,12 +228,11 @@ relative size of each circle represents how frequently it is used by various gro
                     "Defense Evasion tactic in addition to others."
             )
             .style("left", (width - 50) + "px")
-            .style("top", "200px")
+            .style("top", "500px")
             .style("font", "16px sans-serif")
-            .transition(300).delay(3000)
+            .transition(300)
             .style("opacity", 1);
-
-  });
+  }
 
 </script>
 </html>
