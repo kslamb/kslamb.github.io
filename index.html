@@ -36,7 +36,7 @@
 <button onclick="loadTactics()" class="next-button">Next</button>
 <h1>MITRE ATT&CK: Describing Cyber Attacks</h1>
 <p>
-    The MITRE ATT&CK framework (https://attack.mitre.org/) is a standard way of describing cyber attacks. Cyber attacks
+    The MITRE ATT&CK framework (https://attack.mitre.org/) provides a standard way of describing cyber attacks. Cyber attacks
     commonly proceed in stages, which are presented to the left starting with <b>Initial Access</b> all the way through to
     <b>Impact</b>. Each of these is referred to as a <b>tactic</b>, a high-level behavioral pattern observed in cyber attacks.
     Within each tactic there are many <b>techniques</b> which describe more specific behaviours. Hover over the tactics
@@ -44,6 +44,7 @@
 </p>
 </body>
 <div id="tacticsViz"></div>
+<p>The data used in the visualization is from the MITRE ATT&CK framework (https://attack.mitre.org/).</p>
 <script>
     var color = d3.scaleOrdinal().domain(tactics.map(d => d.stage)).range(d3.schemeCategory20);
 
@@ -123,9 +124,7 @@
         d3.json("usages.json", function (error, data) {
             d3.select("p")
                 .text("This bar chart shows how frequently each tactic is used by various groups conducting cyber " +
-                    "attacks and the software that enable them. Each tactic encompasses many, specific techniques. " +
-                    "For an example, the \"Initial Access\" tactic includes the techniques \"Spearphishing Link\" " +
-                    "and \"Spearphishing Attachment\". The horizontal axis plots how many times a particular tactic "+
+                    "attacks and the software that enable them. The horizontal axis plots how many times a particular tactic "+
                     "was used by a unique cyber threat group or tool."
                 );
 
@@ -177,8 +176,8 @@
 
         annotation
             .html("Some of the earlier stage tactics like<br/>" +
-                "Execution, Privilege Escalation, and<br/>" +
-                "Defense Evasion have higher usage by<br/>" +
+                "<b>Execution</b>, <b>Privilege Escalation</b>, and<br/>" +
+                "<b>Defense Evasion</b> have higher usage by<br/>" +
                 "attackers and tools.<br/>"
             )
             .style("left", width + "px")
@@ -197,8 +196,8 @@
 
         annotation
             .html("On the other hand, the later<br/>" +
-                "stage tactics like Exfiltration and<br/>" +
-                "Impact are observed less frequently.<br/>" +
+                "stage tactics like <b>Exfiltration</b> and<br/>" +
+                "<b>Impact</b> are observed less frequently.<br/>" +
                 "This is partly due to the fact that these<br/>" +
                 "later stages are more difficult to<br/>" +
                 "observe."

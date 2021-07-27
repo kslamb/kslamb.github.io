@@ -46,6 +46,7 @@ relative size of each circle represents how frequently it is used by various gro
 
 </body>
 <div id="groupsViz"></div>
+<p>The data used in the visualization is from the MITRE ATT&CK framework (https://attack.mitre.org/).</p>
 <script>
 
   var margin = {top: 20, right: 20, bottom: 70, left: 180},
@@ -183,7 +184,7 @@ relative size of each circle represents how frequently it is used by various gro
 
     d3.selectAll(".circleHijack_Execution_Flow")
             .transition(300)
-            .style("stroke", "white")
+            .style("stroke", "black")
             .style("stroke-width", "4px");
 
     d3.selectAll(".circledefense-evasion")
@@ -191,14 +192,10 @@ relative size of each circle represents how frequently it is used by various gro
             .style("stroke-width", "1px");
 
     annotation
-            .html("Intuitively, the tactics with the most<br/>" +
-                    "embedded techniques have the highest<br/>" +
-                    "usage. Additionally, some techniques<br/>" +
-                    "belong to multiple tactics.<br/>" +
-                    "<br/>" +
-                    "For example, the technique highlighted<br/>" +
-                    "in white (\"Hijack Execution Flow\") falls<br/>" +
-                    "under three different tactics:<br/>" +
+            .html("Some techniques belong to multiple<br/>" +
+                    "tactics. For example, the highlighted <br/>" +
+                    "technique (\"Hijack Execution Flow\")<br/>" +
+                    "falls under three different tactics:<br/>" +
                     "<b>Privilege Escalation</b>, <b>Persistence</b>,<br/>" +
                     "and <b>Defense Evasion</b>."
             )
